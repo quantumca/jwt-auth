@@ -51,6 +51,24 @@ class JWT
     protected $lockSubject = true;
 
     /**
+     * Custom your token parser here.
+     *
+     * @var Callable
+     */
+    protected static $customTokenParser = null;
+
+    /**
+     * Custom token parser
+     *
+     * @param callable $callback 
+     * @return void
+     */
+    public static function customTokenParser(Callable $callback)
+    {
+        static::$customTokenParser = $callback;
+    }
+
+    /**
      * JWT constructor.
      *
      * @param  \Tymon\JWTAuth\Manager  $manager
@@ -181,6 +199,13 @@ class JWT
      */
     public function parseToken()
     {
+        if (is_callable(static::$customTokenParser)) {
+            $token = call_user_func(static::$customTokenParser);
+
+            if ($token) {
+                return $this->setToken($token);
+            }
+        }
         if (! $token = $this->parser->parseToken()) {
             throw new JWTException('The token could not be parsed from the request');
         }
