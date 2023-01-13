@@ -30,7 +30,7 @@ class JWTGuard implements Guard
     /**
      * The user we last attempted to retrieve.
      *
-     * @var \Illuminate\Contracts\Auth\Authenticatable
+     * @var \App\Models\User
      */
     protected $lastAttempted;
 
@@ -71,10 +71,6 @@ class JWTGuard implements Guard
      */
     public function user()
     {
-        if ($this->user !== null) {
-            return $this->user;
-        }
-
         if ($this->jwt->setRequest($this->request)->getToken() &&
             ($payload = $this->jwt->check(true)) &&
             $this->validateSubject()
@@ -146,6 +142,17 @@ class JWTGuard implements Guard
     }
 
     /**
+     * Clear cached user and token.
+     *
+     * @return void
+     */
+    public function clear()
+    {
+        $this->user = null;
+        $this->jwt->unsetToken();
+    }
+
+    /**
      * Logout the user, thus invalidating the token.
      *
      * @param  bool  $forceForever
@@ -156,8 +163,7 @@ class JWTGuard implements Guard
     {
         $this->requireToken()->invalidate($forceForever);
 
-        $this->user = null;
-        $this->jwt->unsetToken();
+        $this->clear();
     }
 
     /**
